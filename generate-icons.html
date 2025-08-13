@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator - Website Blocker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .icon-preview {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .icon-size {
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 5px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .download-all {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .manifest-code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Website Blocker Icon Generator</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Generate Icons" to create PNG icons from the SVG</li>
+                <li>Download each icon size by clicking the "Download" buttons</li>
+                <li>Save the icons in your extension folder</li>
+                <li>Copy the manifest.json code below and add it to your manifest</li>
+            </ol>
+        </div>
+
+        <div class="download-all">
+            <button onclick="generateAllIcons()" style="font-size: 16px; padding: 12px 24px;">
+                🎯 Generate All Icons
+            </button>
+        </div>
+
+        <div class="icon-preview">
+            <div class="icon-size">
+                <h4>16x16</h4>
+                <canvas id="canvas16" width="16" height="16"></canvas>
+                <br>
+                <button onclick="downloadIcon(16)">Download icon16.png</button>
+            </div>
+            <div class="icon-size">
+                <h4>32x32</h4>
+                <canvas id="canvas32" width="32" height="32"></canvas>
+                <br>
+                <button onclick="downloadIcon(32)">Download icon32.png</button>
+            </div>
+            <div class="icon-size">
+                <h4>48x48</h4>
+                <canvas id="canvas48" width="48" height="48"></canvas>
+                <br>
+                <button onclick="downloadIcon(48)">Download icon48.png</button>
+            </div>
+            <div class="icon-size">
+                <h4>128x128</h4>
+                <canvas id="canvas128" width="128" height="128"></canvas>
+                <br>
+                <button onclick="downloadIcon(128)">Download icon128.png</button>
+            </div>
+        </div>
+
+        <div class="manifest-code">
+<strong>Add this to your manifest.json:</strong>
+
+"action": {
+  "default_popup": "popup.html",
+  "default_title": "Website Blocker",
+  "default_icon": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+},
+"icons": {
+  "16": "icon16.png",
+  "32": "icon32.png",
+  "48": "icon48.png",
+  "128": "icon128.png"
+},
+        </div>
+    </div>
+
+    <script>
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+          <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Background circle -->
+          <circle cx="64" cy="64" r="60" fill="url(#grad1)" stroke="#ffffff" stroke-width="4"/>
+          
+          <!-- Shield shape -->
+          <path d="M64 20 L44 30 L44 60 Q44 75 64 85 Q84 75 84 60 L84 30 Z" fill="#ffffff" opacity="0.9"/>
+          
+          <!-- Block symbol -->
+          <circle cx="64" cy="55" r="25" fill="none" stroke="#dc3545" stroke-width="5"/>
+          <line x1="45" y1="35" x2="83" y2="75" stroke="#dc3545" stroke-width="5" stroke-linecap="round"/>
+          
+          <!-- Small lock icon -->
+          <rect x="58" y="48" width="12" height="8" fill="#dc3545" rx="1"/>
+          <path d="M60 48 Q60 44 64 44 Q68 44 68 48" fill="none" stroke="#dc3545" stroke-width="2"/>
+        </svg>`;
+
+        function generateIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            const img = new Image();
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = function() {
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+
+        function generateAllIcons() {
+            [16, 32, 48, 128].forEach(size => {
+                setTimeout(() => generateIcon(size), 100);
+            });
+        }
+
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Generate icons on page load
+        window.onload = function() {
+            setTimeout(generateAllIcons, 500);
+        };
+    </script>
+</body>
+</html>
