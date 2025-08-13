@@ -82,30 +82,34 @@ class BackgroundBlocker {
             const blockedSites = result.blockedSites || [];
             const isEnabled = result.isEnabled !== false;
 
-            // Remove all existing dynamic rules
+            // Remove all existing dynamic rules first
             const existingDynamicRules = await chrome.declarativeNetRequest.getDynamicRules();
             const dynamicRuleIds = existingDynamicRules.map(rule => rule.id);
-            
-            // Also get static rules to avoid conflicts
-            const existingStaticRules = await chrome.declarativeNetRequest.getEnabledRulesets();
-            console.log('Existing static rulesets:', existingStaticRules);
             
             if (dynamicRuleIds.length > 0) {
                 console.log('Removing existing dynamic rules:', dynamicRuleIds);
                 await chrome.declarativeNetRequest.updateDynamicRules({
                     removeRuleIds: dynamicRuleIds
                 });
+                
+                // Wait a bit to ensure rules are fully removed
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
 
             // Add new rules if blocking is enabled
             if (isEnabled && blockedSites.length > 0) {
                 const rules = [];
-                let ruleId = 100000; // Start from a very high number to avoid conflicts
+                
+                // Generate unique rule IDs using timestamp and index to avoid conflicts
+                const baseId = Date.now() % 1000000; // Use timestamp modulo to keep IDs reasonable
+                let ruleIdCounter = 0;
                 
                 blockedSites.forEach((site, index) => {
+                    const siteBaseId = baseId + (index * 100); // Space out rule IDs per site
+                    
                     // Block main site with www subdomain
                     rules.push({
-                        id: ruleId++,
+                        id: siteBaseId + ruleIdCounter++,
                         priority: 1,
                         action: {
                             type: 'redirect',
@@ -121,7 +125,7 @@ class BackgroundBlocker {
 
                     // Also block exact domain
                     rules.push({
-                        id: ruleId++,
+                        id: siteBaseId + ruleIdCounter++,
                         priority: 1,
                         action: {
                             type: 'redirect',
@@ -134,9 +138,18 @@ class BackgroundBlocker {
                             resourceTypes: ['main_frame']
                         }
                     });
+                    
+                    ruleIdCounter = 0; // Reset counter for next site
                 });
 
                 console.log('Adding new rules:', rules.map(r => `ID: ${r.id}, Filter: ${r.condition.urlFilter}`));
+                
+                // Verify no duplicate IDs before adding
+                const ruleIds = rules.map(r => r.id);
+                const uniqueIds = new Set(ruleIds);
+                if (ruleIds.length !== uniqueIds.size) {
+                    throw new Error('Duplicate rule IDs detected in new rules');
+                }
                 
                 await chrome.declarativeNetRequest.updateDynamicRules({
                     addRules: rules
@@ -148,6 +161,20 @@ class BackgroundBlocker {
             }
         } catch (error) {
             console.error('Error updating blocking rules:', error);
+            
+            // If there's an error, try to clear all rules and start fresh
+            try {
+                const allRules = await chrome.declarativeNetRequest.getDynamicRules();
+                const allRuleIds = allRules.map(rule => rule.id);
+                if (allRuleIds.length > 0) {
+                    console.log('Clearing all rules due to error...');
+                    await chrome.declarativeNetRequest.updateDynamicRules({
+                        removeRuleIds: allRuleIds
+                    });
+                }
+            } catch (clearError) {
+                console.error('Error clearing rules after failure:', clearError);
+            }
         }
     }
 
