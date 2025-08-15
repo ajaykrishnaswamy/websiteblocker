@@ -7,13 +7,10 @@
     "declarativeNetRequest",
     "storage",
     "activeTab",
-    "webNavigation"
-  ],
-  "host_permissions": [
-    "<all_urls>"
+    "scripting"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-no-host.js"
   },
   "action": {
     "default_popup": "popup.html",
@@ -22,9 +19,9 @@
   "declarative_net_request": {
     "rule_resources": [
       {
-        "id": "block_rules",
-        "enabled": false,
-        "path": "rules.json"
+        "id": "block_rules_static",
+        "enabled": true,
+        "path": "static-rules.json"
       }
     ]
   },
