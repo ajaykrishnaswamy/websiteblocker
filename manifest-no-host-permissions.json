@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Website Blocker (No Host Permissions)",
+  "version": "1.0",
+  "description": "Block distracting websites without broad host permissions",
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background-no-host.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Website Blocker"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "block_rules_static",
+        "enabled": true,
+        "path": "static-rules.json"
+      }
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+  "incognito": "spanning"
+}
